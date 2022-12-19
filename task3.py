@@ -12,9 +12,39 @@ from matplotlib.pyplot import figure
 #Строчка для создания конфликта
 
 class PdfReport:
+    """
+    Класс отчета pdf-файла
+    :param years_salary: словарь средних зарплат по годам
+    :type years_salary: dict
+    :param years_count: словарь количества вакансий по годам
+    :type years_count: dict
+    :param prof_salary: словарь средних зарплат по годам для введенной профессии
+    :type prof_salary: dict
+    :param prof_count:словарь количества вакансий по годам для введенной профессии
+    :type prof_count: dict
+    :param areas_salary:словарь средних зарплат по городам
+    :type areas_salary: dict
+    :param areas_count: словарь долей от общего количества вакансий по городам
+    :type areas_count: dict
+    """
     def __init__(self, years_salary: dict, years_count: dict,
                  prof_salary: dict, prof_count: dict,
                  areas_salary: dict, areas_count: dict):
+        """
+        Инициализирует объект класса пдф отчета
+        :param years_salary: словарь средних зарплат по годам
+        :type years_salary: dict
+        :param years_count: словарь количества вакансий по годам
+        :type years_count: dict
+        :param prof_salary: словарь средних зарплат по годам для введенной профессии
+        :type prof_salary: dict
+        :param prof_count:словарь количества вакансий по годам для введенной профессии
+        :type prof_count: dict
+        :param areas_salary:словарь средних зарплат по городам
+        :type areas_salary: dict
+        :param areas_count: словарь долей от общего количества вакансий по городам
+        :type areas_count: dict
+        """
         self.years_salary = years_salary
         self.years_count = years_count
         self.prof_salary = prof_salary
@@ -23,6 +53,10 @@ class PdfReport:
         self.areas_count = areas_count
 
     def get_pdf_report(self):
+        """
+        Генерирует отчет в виде pdf-файла
+        :return: pdf-файл
+        """
         env = Environment(loader=FileSystemLoader('.'))
         template = env.get_template('pdf_template.html')
         first_header = ["Год", "Средняя зарплата", f"Средняя зарплата {env}", "Количество вакансий", f"Количество вакансий {env}"]
@@ -41,27 +75,76 @@ class PdfReport:
 
 
 class Salary:
+    """
+    Класс оклада вакансии
+    :param salary_from: Нижняя граница оклада
+    :type salary_from: float
+    :param salary_to: Верхняя граница оклада
+    :type salary_to: float
+    :param salary_currency: Валюта оклада
+    :type salary_currency: str
+    """
     currency_to_rub = {"AZN": 35.68, "BYR": 23.91, "EUR": 59.90, "GEL": 21.74, "KGS": 0.76, "KZT": 0.13, "RUR": 1,
                        "UAH": 1.64, "USD": 60.66, "UZS": 0.0055}
 
     def __init__(self, salary_from, salary_to, salary_currency):
+        """
+        Инициализирует объект класса зарплаты
+        :param salary_from: Нижняя граница оклада
+        :type salary_from: float
+        :param salary_to: Верхняя граница оклада
+        :type salary_to: float
+        :param salary_currency: Валюта оклада
+        :type salary_currency: str
+        """
         self.salary_from = salary_from
         self.salary_to = salary_to
         self.salary_currency = salary_currency
 
     def convert_rub(self) -> float:
+        """
+        Конвертирует среднее значение зарплаты в рубли
+        :return: зарплата в рублях
+        :rtype: float
+        """
         value = float(self.currency_to_rub[self.salary_currency])
         return ((float(self.salary_from) + float(self.salary_to)) / 2) * value
 
 
 class Vacancy:
+    """
+    Класс вакансии
+    :param dict: словарь с данными о вакансии
+    :type dict: dict
+    :param salary: данные об окладе вакансии
+    :type salary: Salary
+    """
     def __init__(self, vacancy_dict):
+        """
+        Инициализирует объект класса вакансии
+        :param vacancy_dict: словарь вакансии
+        :type vacancy_dict: dict
+        """
         self.dict = vacancy_dict
         self.salary = Salary(self.dict['salary_from'], self.dict['salary_to'], self.dict['salary_currency'])
 
 
 class Input:
+    """
+    Класс, принимающий входные данные
+    :param file_name: имя файля
+    :type file_name: str
+    :param profession: профессия по которой необходимо собирать данные
+    :type profession: str
+    :param reportType: тип необходимого отчета
+    :type reportType: str
+    :param fields: поля вакансии
+    :type fields: list
+    """
     def __init__(self):
+        """
+        Инициализирует объект класса Input
+        """
         self.file_name = input("Введите название файла: ")
         self.profession = input("Введите название профессии: ")
         self.vacancy_or_statictics = input("Вакансии или статистика: ")
@@ -69,6 +152,11 @@ class Input:
 
 
     def csv_parser(self):
+        """
+        Парсит csv-файл с вакансиями в массив объектов класса Vacancy
+        :return: массив вакансий
+        :rtype: list
+        """
         reader = self.csv_reader(self.file_name)
         data_all_vacancies = []
         for row in reader:
@@ -77,6 +165,13 @@ class Input:
         return data_all_vacancies
 
     def csv_reader(self, file_name) -> []:
+        """
+        Считывает данные из csv-файла
+        :param file_name: имя csv-файла
+        :type file_name: str
+        :return: массив вакансий в виде массива
+        :rtype: list
+        """
         with open(file_name, encoding="utf-8-sig") as test:
             unpacker = csv.reader(test)
             data = []
@@ -90,12 +185,37 @@ class Input:
             return data[1:]
 
     def get_vacancy(self, row: []) -> Vacancy:
+        """
+        Преобразовывает массив полей вакансии в объект класса Vacancy
+        :param row: массив с полями одной вакансии
+        :type row: list
+        :return: объект класса Vacancy
+        :rtype: Vacancy
+        """
         vacancy = Vacancy(dict(zip(self.fields, row)))
         return vacancy
 
 
 class GraphData:
+    """
+    Класс данных для графиков
+    :param data: входные данные о вакансиях
+    :type data: list
+    :param x_axis: критерий сбора статистики (по годом или по городам)
+    :type x_axis: str
+    :param profession: профессия по которой необходимо собирать данные
+    :type profession: str
+    """
     def __init__(self, data, x_axis, profession="not"):
+        """
+        Инициализирует объект класса GraphData
+        :param data: входные данные о вакансиях
+        :type data: list
+        :param x_axis: критерий сбора статистики (по годом или по городам)
+        :type x_axis: str
+        :param profession: профессия по которой необходимо собирать данные
+        :type profession: str
+        """
         self.data = data
         self.profession = profession
         self.salary_data = dict()
@@ -104,6 +224,10 @@ class GraphData:
         self.calculate_data()
 
     def calculate_data(self):
+        """
+        Собирает данные для графиков из входного массива и записывает их в словари
+        :return: заполненные словари о зарплатах и количестве вакансий
+        """
         for vacancy in self.data:
             self.add_data_from_vacancy(vacancy)
         for x in self.salary_data:
@@ -111,6 +235,12 @@ class GraphData:
                 self.salary_data[x] = math.floor(self.salary_data[x] / self.count_data[x])
 
     def add_data_from_vacancy(self, vacancy: Vacancy):
+        """
+        Считывает необходимые данные из одной вакансии в зависимости от критерия и записывает в словарь
+        :param vacancy: читаемая вакансия
+        :type vacancy: Vacancy
+        :return: словари данных для графиков, где учтена входная вакансия
+        """
         if self.x_axis == "years":
             abscissa = int(vacancy.dict['published_at'].split('-')[0])
         else:
@@ -125,6 +255,14 @@ class GraphData:
         self.update_dicts(abscissa, salary)
 
     def update_dicts(self, key: str, value: float):
+        """
+        Обновляет данные в словарях
+        :param key: ключ словаря - критерий сбора данных
+        :type key: str
+        :param value: зарплата вакансии
+        :type value: float
+        :return: словари с обновленными данными
+        """
         try:
             self.salary_data[key] += value
             self.count_data[key] += 1
@@ -133,6 +271,13 @@ class GraphData:
             self.count_data[key] = 1
 
     def get_graph_data(self):
+        """
+        Возвращает два словаря с данными для графиков
+        Первый словарь - данные по зарплатам
+        Второй словарь - данные по количеству вакансий
+        :return: Данные для графиков
+        :rtype: tuple
+        """
         first_printed_dict = self.salary_data
         second_printed_dict = self.count_data
         if self.x_axis == "areas":
@@ -145,13 +290,50 @@ class GraphData:
 
     @classmethod
     def sorted_dict(cls, non_sorted_dict: dict) -> dict:
+        """
+        Сортирует словарь по значениям
+        :param non_sorted_dict: не отсортированный словарь
+        :type non_sorted_dict: dict
+        :return: отсортированный словарь
+        :rtype: dict
+        """
         return dict(list(sorted(non_sorted_dict.items(), key=lambda x: x[1], reverse=True))[:10])
 
 
 class PngReport:
+    """
+    Класс для создания отчета в виде диаграмм в png
+    :param years_salary: словарь средних зарплат по годам
+    :type years_salary: dict
+    :param years_count: словарь количества вакансий по годам
+    :type years_count: dict
+    :param prof_salary: словарь средних зарплат по годам для введенной профессии
+    :type prof_salary: dict
+    :param prof_count:словарь количества вакансий по годам для введенной профессии
+    :type prof_count: dict
+    :param areas_salary:словарь средних зарплат по городам
+    :type areas_salary: dict
+    :param areas_count: словарь долей от общего количества вакансий по городам
+    :type areas_count: dict
+    """
     def __init__(self, years_salary: dict, years_count: dict,
                  prof_salary: dict, prof_count: dict,
                  areas_salary: dict, areas_count: dict):
+        """
+        Инициализирует объект класса PngReport
+        :param years_salary: словарь средних зарплат по годам
+        :type years_salary: dict
+        :param years_count: словарь количества вакансий по годам
+        :type years_count: dict
+        :param prof_salary: словарь средних зарплат по годам для введенной профессии
+        :type prof_salary: dict
+        :param prof_count:словарь количества вакансий по годам для введенной профессии
+        :type prof_count: dict
+        :param areas_salary:словарь средних зарплат по городам
+        :type areas_salary: dict
+        :param areas_count: словарь долей от общего количества вакансий по городам
+        :type areas_count: dict
+        """
         self.years_salary = years_salary
         self.years_count = years_count
         self.prof_salary = prof_salary
@@ -160,6 +342,10 @@ class PngReport:
         self.areas_count = areas_count
 
     def get_salary_graph(self):
+        """
+        Генерирует png-файл со статистикой по вакансиям в виде диаграмм
+        :return: png-файл
+        """
         fig = plt.figure()
         plt.rcParams.update({'font.size': 8})
         self.add_bar_subplot(fig, "Уровень зарплат по годам", 221, self.years_salary, "средняя з/п", "y",
@@ -177,6 +363,28 @@ class PngReport:
 
     @classmethod
     def add_bar_subplot(cls, fig: figure, title: str, width: int, full_dict: dict, x1_label: str,  axis, subplot_type="", prof_dict={}, x2_label=""):
+        """
+         Добавляет столбчатую диаграмму в отчет
+         :param fig: область в которую добавляются диаграмма
+         :type fig: figure
+         :param title: название диаграммы
+         :type title: str
+         :param width: ширина диаграммы
+         :type width: int
+         :param full_dict: словарь данных по всем вакансиям для диаграммы
+         :type full_dict: dict
+         :param x1_label: заголовок для полного словаря данных
+         :type x1_label: str
+         :param axis: ось на которой располагаются столбцы диаграммы
+         :type axis: str
+         :param subplot_type: тип столбчатый диаграммы (горизонтальный или вертикальный)
+         :type subplot_type: str
+         :param prof_dict: словарь данных для диаграммы по вакансиям для введенной профессии
+         :type prof_dict: dict
+         :param x2_label: заголовок для диаграммы по данным о введенной профессии
+         :type x2_label: str
+         :return: на область добавлена диаграмма
+         """
         ax = fig.add_subplot(width)
         ax.set_title(title, fontsize=8)
         ax.tick_params(axis="both", labelsize=8)
@@ -195,6 +403,18 @@ class PngReport:
 
     @classmethod
     def add_pie_sublot(cls, fig: figure, title: str, width: int, data: dict):
+        """
+        Добавляет круговую диаграмму в отчет
+        :param fig: Область в которую добавляется диаграмма
+        :type fig: figure
+        :param title: Заголовок диаграммы
+        :type title: str
+        :param width: Ширина диаграммы
+        :type width: int
+        :param data: Словарь данных для диаграммы
+        :type data: dict
+        :return: на область добавлена круговая диаграмма
+        """
         ax = fig.add_subplot(width)
         ax.set_title(title, fontsize=8)
         ax.tick_params(axis="both", labelsize=8)
@@ -204,11 +424,31 @@ class PngReport:
 
 
 class ExcelReport:
+    """
+    Класс для создания отчета в виде Excel-таблицы
+    :param border: границы ячеек в таблице
+    :type border: Border
+    :param font: шрифт текста в таблице
+    :type font: Font
+    """
     def __init__(self, side, font):
+        """
+        Инициализирует объект класса ExcelReport
+        :param side: тип границ для ячеек таблицы
+        :type side: Side
+        :param font: шрифт текста в отчете
+        :type font: Font
+        """
         self.border = Border(left=side, top=side, right=side, bottom=side)
         self.font = font
 
     def generate_excel(self, dicts: list):
+        """
+        Генерирует excel-файл со статистикой, собранной из входных данных
+        :param dicts: вхожные данные
+        :type dicts: list
+        :return: сгенерированный excel-файл со статистикой в виде таблиц
+        """
         wb = Workbook()
         self.generate_years_sheet(wb, dicts[0], dicts[1], dicts[2], dicts[3])
         self.generate_areas_sheet(wb, dicts[4], dicts[5])
@@ -217,6 +457,20 @@ class ExcelReport:
         wb.save("report.xlsx")
 
     def generate_years_sheet(self, wb: Workbook, salaries: dict, prof_salaries: dict, counts: dict, prof_counts: dict) -> worksheet.Worksheet:
+        """
+        Генирирует лист в excel-книге со статистикой по годам
+        :param wb: excel-книга
+        :type wb: Workbook
+        :param salaries: словарь средних зарплат по годам
+        :type salaries: dict
+        :param prof_salaries: словарь средних зарплат по годам для введенной профессии
+        :type prof_salaries: dict
+        :param counts: словарь количества вакансий по годам
+        :type counts: dict
+        :param prof_counts: словарь количества вакансий по годам для введенной профессии
+        :type prof_counts: dict
+        :return: excel-лист со статистикой по годам
+        """
         years_list = wb.create_sheet("Статистика по годам")
         years_list['A1'] = 'Год'
         years_list['B1'] = 'Средняя зарплата'
@@ -248,6 +502,16 @@ class ExcelReport:
         return years_list
 
     def generate_areas_sheet(self, wb: Workbook, salaries: dict, counts: dict) -> worksheet.Worksheet:
+        """
+        Генирирует лист в excel-книге со статистикой по городам
+        :param wb: excel-книга
+        :type wb: Workbook
+        :param salaries:словарь средних зарплат по городам
+        :type salaries: dict
+        :param counts: словарь долей от общего количества вакансий по городам
+        :type counts: dict
+        :return: excel-лист со статистикой по городам
+        """
 
         areas_list = wb.create_sheet("Статистика по городам")
         column_cells = [areas_list['A1'], areas_list['B1'], areas_list['D1'], areas_list['E1']]
@@ -275,8 +539,13 @@ class ExcelReport:
         areas_list.column_dimensions = dim_holder
         return areas_list
 
-
+"Вводим данные"
 input_set = Input()
+
+"""
+Генерирует файл с отчетом, тип отчета зависит от выбора пользователя
+:return: Сгенирированный файл отчета
+"""
 data = input_set.csv_parser()
 years = GraphData(data, "years")
 prof_years = GraphData(data, "years", input_set.profession)
