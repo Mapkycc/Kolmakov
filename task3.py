@@ -9,7 +9,7 @@ from openpyxl.worksheet.dimensions import DimensionHolder, ColumnDimension
 from openpyxl.utils import get_column_letter
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
-
+#Строчка для создания конфликта
 
 class PdfReport:
     def __init__(self, years_salary: dict, years_count: dict,
