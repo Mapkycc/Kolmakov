@@ -1,3 +1,5 @@
+import cProfile
+
 from jinja2 import Environment, FileSystemLoader
 import pdfkit
 import csv
@@ -9,6 +11,7 @@ from openpyxl.worksheet.dimensions import DimensionHolder, ColumnDimension
 from openpyxl.utils import get_column_letter
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
+from datetime_profile import DateTimeParser
 #Строчка для создания конфликта
 
 class PdfReport:
@@ -228,11 +231,15 @@ class GraphData:
         Собирает данные для графиков из входного массива и записывает их в словари
         :return: заполненные словари о зарплатах и количестве вакансий
         """
+        pr = cProfile.Profile()
+        pr.enable()
         for vacancy in self.data:
             self.add_data_from_vacancy(vacancy)
         for x in self.salary_data:
             if self.count_data[x] != 0:
                 self.salary_data[x] = math.floor(self.salary_data[x] / self.count_data[x])
+        pr.disable()
+        pr.print_stats()
 
     def add_data_from_vacancy(self, vacancy: Vacancy):
         """
@@ -242,7 +249,9 @@ class GraphData:
         :return: словари данных для графиков, где учтена входная вакансия
         """
         if self.x_axis == "years":
-            abscissa = int(vacancy.dict['published_at'].split('-')[0])
+            parser = DateTimeParser(vacancy.dict['published_at'])
+            year = parser.get_year_by_str_index()
+            abscissa = int(year)
         else:
             abscissa = vacancy.dict['area_name']
         if abscissa not in self.salary_data:
